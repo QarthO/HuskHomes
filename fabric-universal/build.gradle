@@ -1,0 +1,202 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+description = 'Universal Fabric bootstrap for HuskHomes'
+archivesBaseName = "${rootProject.name}-Fabric"
+
+def internalAdapters = [
+        '1.21.1' : project(':fabricUniversal:1.21.1').tasks.named('remapJar'),
+        '1.21.8' : project(':fabricUniversal:1.21.8').tasks.named('remapJar'),
+        '1.21.11': project(':fabricUniversal:1.21.11').tasks.named('remapJar'),
+]
+
+def embeddedImplementations = [
+        '1.21.1' : project(':fabric:1.21.1').tasks.named('remapJar'),
+        '1.21.8' : project(':fabric:1.21.8').tasks.named('remapJar'),
+        '1.21.11': project(':fabric:1.21.11').tasks.named('remapJar'),
+]
+
+def loaderIntegratedLibraries = [
+        adventurePlatform12101: [
+                dependency : 'net.kyori:adventure-platform-fabric:5.14.1',
+                outputName : 'adventure-platform-fabric-5.14.1.jar',
+                minecraft : '>=1.21.1 <1.21.2',
+        ],
+        adventurePlatform12108: [
+                dependency : 'net.kyori:adventure-platform-fabric:6.6.0',
+                outputName : 'adventure-platform-fabric-6.6.0.jar',
+                minecraft : '>=1.21.6 <1.21.10',
+        ],
+        adventurePlatform12111: [
+                dependency : 'net.kyori:adventure-platform-fabric:6.8.0',
+                outputName : 'adventure-platform-fabric-6.8.0.jar',
+                minecraft : '>1.21.10 <1.22',
+        ],
+]
+
+def sharedEmbeddedRuntimeJarPrefixes = [
+        'DesertWell-',
+        'HikariCP-',
+        'HuskHomes-Common-',
+        'adventure-platform-fabric-',
+        'commons-io-',
+        'commons-pool2-',
+        'commons-text-',
+        'configlib-core-',
+        'configlib-yaml-',
+        'gson-',
+        'gson-javatime-serialisers-',
+        'h2-',
+        'jedis-',
+        'mariadb-java-client-',
+        'minedown-',
+        'mysql-connector-j-',
+        'paginedown-',
+        'redis-authx-core-',
+        'snakeyaml-engine-',
+        'sqlite-jdbc-',
+]
+
+def preparedEmbeddedImplementations = embeddedImplementations.collectEntries { minecraftVersion, remapJarTask ->
+    def versionSlug = minecraftVersion.replace('.', '')
+    def unpackTask = tasks.register("prepareEmbeddedRuntime${versionSlug}", Sync) {
+        dependsOn(remapJarTask)
+        from({
+            zipTree(remapJarTask.get().archiveFile.get().asFile)
+        })
+        into(layout.buildDirectory.dir("prepared-embedded-runtimes/${minecraftVersion}"))
+        doLast {
+            final File nestedJarDirectory = destinationDir.toPath().resolve("META-INF/jars").toFile()
+            if (!nestedJarDirectory.exists()) {
+                return
+            }
+            nestedJarDirectory.listFiles()?.each { nestedJar ->
+                if (sharedEmbeddedRuntimeJarPrefixes.any { prefix -> nestedJar.name.startsWith(prefix) }) {
+                    nestedJar.delete()
+                }
+            }
+        }
+    }
+
+    [
+            (minecraftVersion): tasks.register("packageEmbeddedRuntime${versionSlug}", Jar) {
+                dependsOn(unpackTask)
+                archiveFileName.set("runtime-${minecraftVersion}.jar")
+                destinationDirectory.set(layout.buildDirectory.dir("prepared-embedded-runtimes-jars"))
+                from(unpackTask.map { it.destinationDir })
+            }
+    ]
+}
+
+def preparedLoaderIntegratedLibraries = loaderIntegratedLibraries.collectEntries { taskName, spec ->
+    def dependencyConfiguration = configurations.detachedConfiguration(
+            dependencies.create(spec.dependency)
+    )
+    dependencyConfiguration.transitive = false
+    def dependencyJar = providers.provider {
+        File runtimeJar = null
+        dependencyConfiguration.files.each { resolvedFile ->
+            if (runtimeJar == null
+                    && resolvedFile.name.endsWith('.jar')
+                    && !resolvedFile.name.endsWith('-sources.jar')
+                    && !resolvedFile.name.endsWith('-javadoc.jar')) {
+                runtimeJar = resolvedFile
+            }
+        }
+        if (runtimeJar == null) {
+            throw new GradleException("Failed to resolve runtime jar for ${spec.dependency}")
+        }
+        runtimeJar
+    }
+    def prepareTask = tasks.register("prepare${taskName.capitalize()}", Sync) {
+        from({
+            zipTree(dependencyJar.get())
+        })
+        into(layout.buildDirectory.dir("prepared-loader-libraries/${taskName}"))
+        doLast {
+            final File metadataFile = destinationDir.toPath().resolve("fabric.mod.json").toFile()
+            final Map<String, Object> metadata = new JsonSlurper().parse(metadataFile) as Map<String, Object>
+            final Map<String, Object> depends = new LinkedHashMap<>((Map<String, Object>) (metadata.get("depends") ?: [:]))
+            depends.put("minecraft", spec.minecraft)
+            metadata.put("depends", depends)
+            metadataFile.text = JsonOutput.prettyPrint(JsonOutput.toJson(metadata))
+        }
+    }
+
+    [
+            (taskName): tasks.register("package${taskName.capitalize()}", Jar) {
+                dependsOn(prepareTask)
+                archiveFileName.set(spec.outputName)
+                destinationDirectory.set(layout.buildDirectory.dir("prepared-loader-libraries-jars"))
+                from(prepareTask.map { it.destinationDir })
+            }
+    ]
+}
+
+dependencies {
+    compileOnly "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    compileOnly 'org.jetbrains:annotations:26.1.0'
+    compileOnly 'org.slf4j:slf4j-api:2.0.17'
+
+    // These neutral APIs must be available to outer-loader common classes used by the embedded runtimes.
+    implementation 'net.kyori:adventure-api:4.26.1'
+    implementation 'net.kyori:adventure-platform-api:4.4.1'
+    implementation 'net.william278.toilet:toilet-common:1.0.17'
+    implementation 'de.exlll:configlib-core:4.8.1'
+    implementation 'org.apache.commons:commons-pool2:2.13.1'
+    implementation 'redis.clients.authentication:redis-authx-core:0.1.1-beta2'
+    implementation "org.xerial:sqlite-jdbc:${sqlite_driver_version}"
+    implementation "com.mysql:mysql-connector-j:${mysql_driver_version}"
+    implementation "org.mariadb.jdbc:mariadb-java-client:${mariadb_driver_version}"
+    implementation "redis.clients:jedis:${jedis_version}"
+    implementation "com.h2database:h2:${h2_driver_version}"
+    implementation "org.postgresql:postgresql:${postgresql_driver_version}"
+
+    implementation project(path: ":common")
+    project(":common").configurations.api.dependencies.each { dependency ->
+        implementation(dependency)
+    }
+}
+
+processResources {
+    filesMatching(Arrays.asList("fabric.mod.json")) {
+        expand([
+                version                       : version,
+                fabric_loader_version         : fabric_loader_version,
+                fabric_minecraft_version_range: fabric_minecraft_version_range,
+        ])
+    }
+}
+
+shadowJar {
+    destinationDirectory.set(file("$rootDir/target"))
+    archiveClassifier.set('')
+    zip64 true
+
+    internalAdapters.each { minecraftVersion, remapJarTask ->
+        dependsOn(remapJarTask)
+        from({
+            zipTree(remapJarTask.get().archiveFile.get().asFile)
+        }) {
+            exclude 'fabric.mod.json'
+            exclude 'META-INF/**'
+            exclude 'LICENSE'
+            exclude 'net/minecraft/**'
+            exclude 'com/mojang/**'
+        }
+    }
+
+    preparedEmbeddedImplementations.each { minecraftVersion, jarTask ->
+        dependsOn(jarTask)
+        from(jarTask.flatMap { it.archiveFile }) {
+            into('META-INF/huskhomes/runtime')
+        }
+    }
+
+    preparedLoaderIntegratedLibraries.each { taskName, jarTask ->
+        dependsOn(jarTask)
+        from(jarTask.flatMap { it.archiveFile }) {
+            into('META-INF/jars')
+        }
+    }
+}

@@ -51,7 +51,7 @@ public abstract class Command extends Node {
     public abstract void execute(@NotNull CommandUser executor, @NotNull String[] args);
 
     @NotNull
-    protected String[] removeFirstArg(@NotNull String[] args) {
+    public String[] removeFirstArg(@NotNull String[] args) {
         if (args.length <= 1) {
             return new String[0];
         }

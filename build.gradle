@@ -133,10 +133,12 @@ subprojects {
     archivesBaseName = name
 
     // Fabric-specific configuration
-    if (project.parent?.name?.equals('fabric')) {
+    if (['fabric', 'fabricUniversal'].contains(project.parent?.name)) {
         apply plugin: 'dev.architectury.loom'
         compileJava.options.release.set 21
-        version += "+mc.${project.name}"
+        if (project.parent?.name?.equals('fabric')) {
+            version += "+mc.${project.name}"
+        }
     }
 
     jar {

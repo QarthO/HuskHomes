@@ -22,7 +22,20 @@ include(
         // Paper/Spigot
         'bukkit',
         'paper',
+        'fabricUniversal',
 )
+
+project(":fabricUniversal").with {
+    projectDir = file("fabric-universal/")
+}
+
+file('fabric-universal').listFiles((FileFilter) ((File file) -> file.isDirectory() && file.name ==~ /(\d+)\.(\d+)(\.(\d+))?/)).each {
+    include("fabricUniversal:$it.name")
+    project(":fabricUniversal:$it.name").with {
+        projectDir = file("fabric-universal/${it.name}")
+        buildFileName = '../version.gradle'
+    }
+}
 
 
 // Fabric

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "huskhomes",
+  "version": "${version}",
+  "name": "HuskHomes",
+  "description": "${description}",
+  "authors": [
+    {
+      "name": "William278",
+      "contact": {
+        "sources": "https://github.com/WiIIiam278/",
+        "homepage": "https://william278.net/"
+      }
+    }
+  ],
+  "license": "Apache-2.0",
+  "contact": {
+    "homepage": "https://william278.net/project/huskhomes/",
+    "repo": "https://github.com/WiIIiam278/HuskHomes",
+    "issues": "https://github.com/WiIIiam278/HuskHomes/issues"
+  },
+  "environment": "server",
+  "entrypoints": {
+    "server": [
+      "net.william278.huskhomes.universal.UniversalFabricBootstrap"
+    ]
+  },
+  "jars": [
+    {
+      "file": "META-INF/jars/adventure-platform-fabric-5.14.1.jar"
+    },
+    {
+      "file": "META-INF/jars/adventure-platform-fabric-6.6.0.jar"
+    },
+    {
+      "file": "META-INF/jars/adventure-platform-fabric-6.8.0.jar"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": "${fabric_minecraft_version_range}",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "bluemap": ">=3.13",
+    "dynmap": ">=3.6",
+    "pl3xmap": "*",
+    "luckperms": ">=5.4",
+    "plan": ">=5.5"
+  }
+}
