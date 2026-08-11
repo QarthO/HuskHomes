@@ -72,9 +72,9 @@ public interface DumpProvider {
                         .support("https://discord.gg/tVYhJfyDWG")
                         .build())
                 .fileInclusionRules(List.of(
-                        FileInclusionRule.configFile("config.yml", "Config File"),
-                        FileInclusionRule.configFile("spawn.yml", "Spawn File"),
-                        FileInclusionRule.configFile(getMessagesFile(), "Locales File")
+                        filteredConfigFile("config.yml", "Config File"),
+                        filteredConfigFile("spawn.yml", "Spawn File"),
+                        filteredConfigFile(getMessagesFile(), "Locales File")
                 ))
                 .compatibilityRules(List.of(
                         getCompatibilityWarning("CMI", "CMI may cause compatibility issues with " +
@@ -161,6 +161,14 @@ public interface DumpProvider {
         return CompatibilityRule.builder()
                 .labelToApply(new PluginInfo.Label("Warning", "#fcba03", description))
                 .resourceName(plugin).build();
+    }
+
+    @NotNull
+    private static FileInclusionRule filteredConfigFile(@NotNull String fileName, @NotNull String label) {
+        return FileInclusionRule.builder()
+                .fileMeta(new FileInclusionRule.FileMeta(fileName, label))
+                .fileReader(new FilteredConfigFileReader())
+                .build();
     }
 
     @NotNull
