@@ -51,9 +51,12 @@ To build HuskHomes, simply run the following in the root of the repository (buil
 ```
 
 ### Fabric versions
-The Fabric module targets several Minecraft versions from one source tree using [Stonecutter](https://stonecutter.kikugie.dev/). Supported versions are registered in `settings.gradle`, with per-version dependency properties in `fabric/versions/<version>/gradle.properties`. Version-specific code is marked with Stonecutter comments (`//? if >=26.1.2 {`).
+Fabric versions are managed with [Stonecutter](https://stonecutter.kikugie.dev/). To work on a version other than 26.3:
 
-`fabric/src` is kept in the 26.2 state. To edit code for another version, switch with `./gradlew :fabric:"Set active project to 1.21.1"`, then run `./gradlew :fabric:"Reset active project"` before committing.
+```bash
+./gradlew :fabric:"Set active project to 1.21.1"
+./gradlew :fabric:"Reset active project" # back to 26.3 before committing
+```
 
 ## License
 HuskHomes is licensed under the Apache 2.0 license.

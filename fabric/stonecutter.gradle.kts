@@ -2,9 +2,8 @@ plugins {
     id("dev.kikugie.stonecutter")
 }
 
-// The version that fabric/src is currently written for. Switch with the Stonecutter tasks
-// (e.g. `./gradlew :fabric:"Set active project to 1.21.1"`), and run `:fabric:"Reset active project"` before committing.
-stonecutter active "26.2"
+// The version fabric/src is written for; commit it in the 26.3 state (see README)
+stonecutter active "26.3"
 
 stonecutter parameters {
     // Sources use current Mojang names; these map renamed classes and methods back for older versions

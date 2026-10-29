@@ -277,10 +277,10 @@ public class FabricUser extends OnlineUser {
             return;
         }
         //? if >=26.3 {
-        /*player.setPermanentlyInvulnerable(true);
-        *///?} else {
-        player.setInvulnerable(true);
-        //?}
+        player.setPermanentlyInvulnerable(true);
+        //?} else {
+        /*player.setInvulnerable(true);
+        *///?}
         //? if >=26 {
         player.addTag(invulnerableTag);
         //?} else {
@@ -294,10 +294,10 @@ public class FabricUser extends OnlineUser {
     public void removeInvulnerabilityIfPermitted() {
         if (this.hasInvulnerability()) {
             //? if >=26.3 {
-            /*player.setPermanentlyInvulnerable(false);
-            *///?} else {
-            player.setInvulnerable(false);
-            //?}
+            player.setPermanentlyInvulnerable(false);
+            //?} else {
+            /*player.setInvulnerable(false);
+            *///?}
         }
         player.removeTag(invulnerableTag);
         markedAsInvulnerable = false;
