@@ -21,11 +21,7 @@ package net.william278.huskhomes.hook;
 
 import eu.pb4.placeholders.api.PlaceholderResult;
 import eu.pb4.placeholders.api.Placeholders;
-//? if >=26.1.2 {
 import net.minecraft.resources.Identifier;
-//?} else {
-/*import net.minecraft.util.Identifier;
-*///?}
 import net.william278.huskhomes.FabricHuskHomes;
 import net.william278.huskhomes.user.OnlineUser;
 import net.william278.huskhomes.user.SavedUser;
@@ -46,11 +42,7 @@ public class FabricPlaceholderAPIHook extends Hook {
     @SuppressWarnings("SameParameterValue")
     @NotNull
     private Identifier createIdentifier(@NotNull String name) {
-        //? if >=26.1.2 {
         return Identifier.fromNamespaceAndPath("huskhomes", name);
-        //?} else {
-        /*return Identifier.of("huskhomes", name);
-        *///?}
     }
 
     @Override

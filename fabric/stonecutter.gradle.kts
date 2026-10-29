@@ -7,12 +7,13 @@ plugins {
 stonecutter active "26.2"
 
 stonecutter parameters {
-    // Versions below 26 use Yarn mappings; keep Javadoc links pointing at their class names.
-    // Code references are handled with version conditions in the sources instead.
-    replacements.string(current.parsed < "26") {
-        replace("{@link ServerPlayer}", "{@link ServerPlayerEntity}")
-        replace("{@link ServerLevel}", "{@link ServerWorld}")
-        replace("{@link TeleportTransition}", "{@link TeleportTarget}")
-        replace("{@link Vec3}", "{@link Vec3d}")
+    // Sources use current Mojang names; these map renamed classes and methods back for older versions
+    replacements.regex(current.parsed >= "1.21.11") {
+        replace("\\bResourceLocation\\b" to "Identifier", "\\bIdentifier\\b" to "ResourceLocation")
+        // ResourceKey#location() was renamed with ResourceLocation
+        replace("\\.location\\(\\)" to ".identifier()", "\\.identifier\\(\\)" to ".location()")
+    }
+    replacements.string(current.parsed >= "1.21.2") {
+        replace("DimensionTransition", "TeleportTransition")
     }
 }

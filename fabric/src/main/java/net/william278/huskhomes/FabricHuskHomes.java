@@ -39,7 +39,6 @@ import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 /*import net.kyori.adventure.platform.fabric.FabricServerAudiences;
 *///?}
 import net.minecraft.server.MinecraftServer;
-//? if >=26.1.2 {
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.Entity;
@@ -50,17 +49,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.level.storage.LevelData;
-//?} else {
-/*import net.minecraft.entity.Entity;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.TeleportTarget;
-import net.minecraft.world.WorldProperties;
-*///?}
 import net.william278.desertwell.util.Version;
 import net.william278.huskhomes.api.FabricHuskHomesAPI;
 import net.william278.huskhomes.command.Command;
@@ -210,11 +198,7 @@ public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes
 
     @Override
     public void setWorldSpawn(@NotNull Position position) {
-        //? if >=26.1.2 {
         final ServerLevel world = Adapter.adapt(position, minecraftServer);
-        //?} else {
-        /*final ServerWorld world = Adapter.adapt(position, minecraftServer);
-        *///?}
 
         if (world != null) {
             //? if >=26.1.2 {
@@ -229,15 +213,15 @@ public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes
                     0
             ));
             //?} elif >=1.21.11 {
-            /*world.setSpawnPoint(WorldProperties.SpawnPoint.create(
-                   world.getRegistryKey(),
-                   BlockPos.ofFloored(position.getX(), position.getY(), position.getZ()),
+            /*world.setRespawnData(LevelData.RespawnData.of(
+                   world.dimension(),
+                   BlockPos.containing(position.getX(), position.getY(), position.getZ()),
                    position.getYaw(),
                    0
             ));
             *///?} else {
-            /*world.setSpawnPos(
-                   BlockPos.ofFloored(position.getX(), position.getY(), position.getZ()),
+            /*world.setDefaultSpawnPos(
+                   BlockPos.containing(position.getX(), position.getY(), position.getZ()),
                    position.getYaw()
             );
             *///?}
@@ -280,11 +264,7 @@ public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes
     @NotNull
     public List<World> getWorlds() {
         final List<World> worlds = Lists.newArrayList();
-        //? if >=26.1.2 {
         minecraftServer.getAllLevels().forEach(level -> worlds.add(Adapter.adapt(level)));
-        //?} else {
-        /*minecraftServer.getWorlds().forEach(world -> worlds.add(Adapter.adapt(world)));
-        *///?}
         return worlds;
     }
 
@@ -300,11 +280,7 @@ public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes
         return String.format("fabric %s/%s", FabricLoader.getInstance()
                 .getModContainer("fabricloader").map(l -> l.getMetadata().getVersion().getFriendlyString())
                 .orElse("unknown"),
-                //? if >=26.1.2 {
                 minecraftServer.getServerVersion()
-                //?} else {
-                /*minecraftServer.getVersion()
-                *///?}
         );
     }
 
@@ -312,11 +288,7 @@ public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes
     @NotNull
     public Version getMinecraftVersion() {
         return Version.fromString(
-                //? if >=26.1.2 {
                 minecraftServer.getServerVersion()
-                //?} else {
-                /*minecraftServer.getVersion()
-                *///?}
         );
     }
 
@@ -399,8 +371,8 @@ public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes
                 @NotNull Vec3 pos,
                 @NotNull ServerLevel world,
                 //?} else {
-                /*@NotNull Vec3d pos,
-                @NotNull net.minecraft.world.World world,
+                /*@NotNull Vec3 pos,
+                @NotNull net.minecraft.world.level.Level world,
                 *///?}
                 float yaw, float pitch
         ) {
@@ -409,9 +381,9 @@ public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes
             double y = pos.get(Direction.Axis.Y);
             double z = pos.get(Direction.Axis.Z);
             //?} else {
-            /*double x = pos.getX();
-            double y = pos.getY();
-            double z = pos.getZ();
+            /*double x = pos.x();
+            double y = pos.y();
+            double z = pos.z();
             *///?}
             return Position.at(
                     x, y, z,
@@ -426,8 +398,8 @@ public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes
                 @NotNull Vec3 pos,
                 @NotNull ServerLevel world,
                 //?} else {
-                /*@NotNull Vec3d pos,
-                @NotNull net.minecraft.world.World world,
+                /*@NotNull Vec3 pos,
+                @NotNull net.minecraft.world.level.Level world,
                 *///?}
                 float yaw, float pitch,
                 @NotNull String server
@@ -436,27 +408,13 @@ public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes
         }
 
         @NotNull
-        //? if >=26.1.2 {
         public static TeleportTransition adapt(@NotNull Location location, @NotNull MinecraftServer server,
                                                @NotNull Consumer<Entity> runAfterTeleport) {
-        //?} else {
-        /*public static TeleportTarget adapt(@NotNull Location location, @NotNull MinecraftServer server,
-            @NotNull Consumer<Entity> runAfterTeleport) {
-        *///?}
-            //? if >=26.1.2 {
             Vec3 pos = new Vec3(location.getX(), location.getY(), location.getZ());
             return new TeleportTransition(
-            //?} else {
-            /*Vec3d pos = new Vec3d(location.getX(), location.getY(), location.getZ());
-            return new TeleportTarget(
-            *///?}
                     Objects.requireNonNull(adapt(location.getWorld(), server)),
                     pos,
-                    //? if >=26.1.2 {
                     Vec3.ZERO,
-                    //?} else {
-                    /*Vec3d.ZERO,
-                    *///?}
                     location.getYaw(),
                     location.getPitch(),
                     runAfterTeleport::accept
@@ -464,25 +422,17 @@ public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes
         }
 
         @Nullable
-        //? if >=26.1.2 {
         public static ServerLevel adapt(@NotNull World world, @NotNull MinecraftServer server) {
-        //?} else {
-        /*public static ServerWorld adapt(@NotNull World world, @NotNull MinecraftServer server) {
-        *///?}
             //? if >=26.1.2 {
             return server.getLevel(ResourceKey.create(Registries.DIMENSION,
                     Objects.requireNonNull(Identifier.tryParse(world.getName()))));
             //?} else {
-            /*return server.getWorld(RegistryKey.of(RegistryKeys.WORLD, Identifier.tryParse(world.getName())));
+            /*return server.getLevel(ResourceKey.create(Registries.DIMENSION, Identifier.tryParse(world.getName())));
             *///?}
         }
 
         @Nullable
-        //? if >=26.1.2 {
         public static ServerLevel adapt(@NotNull Position position, @NotNull MinecraftServer server) {
-        //?} else {
-        /*public static ServerWorld adapt(@NotNull Position position, @NotNull MinecraftServer server) {
-        *///?}
             return adapt(position.getWorld(), server);
         }
 
@@ -491,13 +441,13 @@ public class FabricHuskHomes implements DedicatedServerModInitializer, HuskHomes
                 //? if >=26.1.2 {
                 @NotNull ServerLevel world
                 //?} else {
-                /*@NotNull net.minecraft.world.World world
+                /*@NotNull net.minecraft.world.level.Level world
                 *///?}
         ) {
             //? if >=26.1.2 {
             String name = world.getLevel().dimension().identifier().asString().replace("minecraft:", "");
             //?} else {
-            /*String name = world.getRegistryKey().getValue().asMinimalString();
+            /*String name = world.dimension().identifier().asMinimalString();
             *///?}
             return World.from(
                     name,

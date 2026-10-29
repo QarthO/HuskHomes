@@ -19,21 +19,12 @@
 
 package net.william278.huskhomes.event;
 
-//? if >=26.1.2 {
 import net.minecraft.world.InteractionResult;
-//?} else {
-/*import net.minecraft.util.ActionResult;
-*///?}
 import org.jetbrains.annotations.NotNull;
 
 public interface FabricEventCallback<E extends Event> {
-    //? if >=26.1.2 {
     static <C extends Cancellable> InteractionResult invokeEvents(FabricEventCallback<C>[] listeners, C event) {
-    //?} else {
-    /*static <C extends Cancellable> ActionResult invokeEvents(FabricEventCallback<C>[] listeners, C event) {
-    *///?}
         for (FabricEventCallback<C> listener : listeners) {
-            //? if >=26.1.2 {
             final InteractionResult result = listener.invoke(event);
             if (event.isCancelled()) {
                 return InteractionResult.CONSUME;
@@ -41,28 +32,11 @@ public interface FabricEventCallback<E extends Event> {
                 event.setCancelled(true);
                 return result;
             }
-            //?} else {
-            /*final ActionResult result = listener.invoke(event);
-            if (event.isCancelled()) {
-               return ActionResult.CONSUME;
-            } else if (result != ActionResult.PASS) {
-               event.setCancelled(true);
-               return result;
-            }
-            *///?}
         }
 
-        //? if >=26.1.2 {
         return InteractionResult.PASS;
-        //?} else {
-        /*return ActionResult.PASS;
-        *///?}
     }
 
     @NotNull
-    //? if >=26.1.2 {
     InteractionResult invoke(@NotNull E event);
-    //?} else {
-    /*ActionResult invoke(@NotNull E event);
-    *///?}
 }

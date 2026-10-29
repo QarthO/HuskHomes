@@ -24,29 +24,15 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.util.TriState;
 import net.kyori.adventure.audience.Audience;
-//? if >=26 {
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+//? if >=1.21.11 {
 import net.minecraft.server.permissions.Permission;
 import net.minecraft.server.permissions.PermissionLevel;
+//?}
 import net.minecraft.world.entity.Entity;
-//?} elif >=1.21.8 {
-/*import net.minecraft.command.permission.Permission;
-import net.minecraft.command.permission.PermissionLevel;
-import net.minecraft.entity.Entity;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-*///?} else {
-/*import net.minecraft.entity.Entity;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-*///?}
 import net.minecraft.server.MinecraftServer;
 import net.william278.huskhomes.FabricHuskHomes;
 import net.william278.huskhomes.position.Location;
@@ -63,26 +49,16 @@ public class FabricUser extends OnlineUser {
 
     private final String invulnerableTag = plugin.getKey("invulnerable").asString();
     private final
-            //? if >=26 {
             ServerPlayer
-            //?} else {
-            /*ServerPlayerEntity
-            *///?}
             player;
 
     private FabricUser(@NotNull
-            //? if >=26 {
             ServerPlayer
-            //?} else {
-            /*ServerPlayerEntity
-            *///?}
             player, @NotNull FabricHuskHomes plugin) {
-        //? if >=26 {
+        //? if >=1.21.8 {
         super(player.getUUID(), player.getGameProfile().name(), plugin);
-        //?} elif >=1.21.8 {
-        /*super(player.getUuid(), player.getGameProfile().name(), plugin);
-        *///?} else {
-        /*super(player.getUuid(), player.getGameProfile().getName(), plugin);
+        //?} else {
+        /*super(player.getUUID(), player.getGameProfile().getName(), plugin);
         *///?}
         this.player = player;
     }
@@ -90,11 +66,7 @@ public class FabricUser extends OnlineUser {
     @NotNull
     @ApiStatus.Internal
     public static FabricUser adapt(@NotNull
-            //? if >=26 {
             ServerPlayer
-            //?} else {
-            /*ServerPlayerEntity
-            *///?}
             player, @NotNull FabricHuskHomes plugin) {
         return new FabricUser(player, plugin);
     }
@@ -102,45 +74,23 @@ public class FabricUser extends OnlineUser {
     @Override
     public Position getPosition() {
         return FabricHuskHomes.Adapter.adapt(
-                //? if >=26 {
                 player.position(),
-                //?} elif >=1.21.8 {
-                /*player.getEntityPos(),
-                *///?} else {
-                /*player.getPos(),
-                *///?}
                 getServerWorld(player),
-                //? if >=26 {
                 player.getYRot(), player.getXRot(),
-                //?} else {
-                /*player.getYaw(), player.getPitch(),
-                *///?}
                 plugin.getServerName()
         );
     }
 
     @NotNull
     private
-            //? if >=26 {
             ServerLevel
-            //?} else {
-            /*ServerWorld
-            *///?}
             getServerWorld(@NotNull
-                    //? if >=26 {
                     ServerPlayer
-                    //?} else {
-                    /*ServerPlayerEntity
-                    *///?}
                     player) {
-        //? if >=26 {
+        //? if >=1.21.6 {
         return player.level();
-        //?} elif <=1.21.5 {
-        /*return player.getServerWorld();
-        *///?} elif >=1.21.8 {
-        /*return player.getEntityWorld();
-        *///?} else {
-        /*return player.getWorld();
+        //?} else {
+        /*return player.serverLevel();
         *///?}
     }
 
@@ -155,18 +105,18 @@ public class FabricUser extends OnlineUser {
         final BlockPos spawn = respawnConfig.respawnData().pos();
         final float angle = respawnConfig.respawnData().yaw();
         final ResourceKey<net.minecraft.world.level.Level> world = respawnConfig.respawnData().dimension();
-        //?} elif <=1.21.4 {
-        /*final BlockPos spawn = player.getSpawnPointPosition();
-        final float angle = player.getSpawnAngle();
-        final RegistryKey<net.minecraft.world.World> world = player.getSpawnPointDimension();
-        *///?} elif >=1.21.8 {
-        /*final BlockPos spawn = player.getRespawn() == null ? null : player.getRespawn().respawnData().getPos();
-        final float angle = player.getRespawn() == null ? 0 : player.getRespawn().respawnData().yaw();
-        final RegistryKey<net.minecraft.world.World> world = player.getRespawn() == null ? null : player.getRespawn().respawnData().getDimension();
+        //?} elif >=1.21.9 {
+        /*final BlockPos spawn = player.getRespawnConfig() == null ? null : player.getRespawnConfig().respawnData().pos();
+        final float angle = player.getRespawnConfig() == null ? 0 : player.getRespawnConfig().respawnData().yaw();
+        final ResourceKey<net.minecraft.world.level.Level> world = player.getRespawnConfig() == null ? null : player.getRespawnConfig().respawnData().dimension();
+        *///?} elif >=1.21.5 {
+        /*final BlockPos spawn = player.getRespawnConfig() == null ? null : player.getRespawnConfig().pos();
+        final float angle = player.getRespawnConfig() == null ? 0 : player.getRespawnConfig().angle();
+        final ResourceKey<net.minecraft.world.level.Level> world = player.getRespawnConfig() == null ? null : player.getRespawnConfig().dimension();
         *///?} else {
-        /*final BlockPos spawn = player.getRespawn() == null ? null : player.getRespawn().pos();
-        final float angle = player.getRespawn() == null ? 0 : player.getRespawn().angle();
-        final RegistryKey<net.minecraft.world.World> world = player.getRespawn() == null ? null : player.getRespawn().dimension();
+        /*final BlockPos spawn = player.getRespawnPosition();
+        final float angle = player.getRespawnAngle();
+        final ResourceKey<net.minecraft.world.level.Level> world = player.getRespawnDimension();
         *///?}
         if (spawn == null || world == null) {
             return Optional.empty();
@@ -176,13 +126,8 @@ public class FabricUser extends OnlineUser {
                 spawn.getX(), spawn.getY(), spawn.getZ(),
                 angle, 0,
                 World.from(
-                        //? if >=26 {
                         world.identifier().asString(),
                         UUID.nameUUIDFromBytes(world.identifier().asString().getBytes())
-                        //?} else {
-                        /*world.getValue().asString(),
-                        UUID.nameUUIDFromBytes(world.getValue().asString().getBytes())
-                        *///?}
                 ),
                 plugin.getServerName()
         ));
@@ -201,13 +146,11 @@ public class FabricUser extends OnlineUser {
     @Override
     public boolean hasPermission(@NotNull String node) {
         final boolean op = Boolean.TRUE.equals(((FabricHuskHomes) plugin).getPermissions().getOrDefault(node, true));
-        //? if >=26 {
+        //? if >=1.21.11 {
         final boolean hasPermission = player.permissions()
                 .hasPermission(new Permission.HasCommandLevel(PermissionLevel.byId(3)));
-        //?} elif >=1.21.8 {
-        /*boolean hasPermission = player.getPermissions().hasPermission(new Permission.Level(PermissionLevel.fromLevel(3)));
-        *///?} else {
-        /*boolean hasPermission = player.hasPermissionLevel(3);
+        //?} else {
+        /*boolean hasPermission = player.hasPermissions(3);
         *///?}
         return Permissions.check(player, node, !op || hasPermission);
     }
@@ -243,11 +186,7 @@ public class FabricUser extends OnlineUser {
         final CompletableFuture<Void> future = new CompletableFuture<>();
         plugin.runSync(() -> {
             player.stopRiding();
-            //? if >=26 {
             player.getPassengers().forEach(Entity::stopRiding);
-            //?} else {
-            /*player.getPassengerList().forEach(Entity::stopRiding);
-            *///?}
             future.complete(null);
         }, this);
         return future;
@@ -255,11 +194,9 @@ public class FabricUser extends OnlineUser {
 
     @Override
     public void teleportLocally(@NotNull Location location, boolean async) throws TeleportationException {
-        //? if >=26 {
+        //? if >=1.21.8 {
         final MinecraftServer server = player.level().getServer();
-        //?} elif >=1.21.8 {
-        /*final MinecraftServer server = player.getEntityWorld().getServer();
-        *///?} else {
+        //?} else {
         /*final MinecraftServer server = player.getServer();
         *///?}
 
@@ -267,11 +204,7 @@ public class FabricUser extends OnlineUser {
             throw new TeleportationException(TeleportationException.Type.ILLEGAL_TARGET_COORDINATES, plugin);
         }
         final
-                //? if >=26 {
                 ServerLevel
-                //?} else {
-                /*ServerWorld
-                *///?}
                 world = FabricHuskHomes.Adapter.adapt(location.getWorld(), server);
         if (world == null) {
             throw new TeleportationException(TeleportationException.Type.WORLD_NOT_FOUND, plugin);
@@ -280,11 +213,7 @@ public class FabricUser extends OnlineUser {
         // Synchronously teleport
         plugin.runSync(() -> {
             player.stopRiding();
-            //? if >=26 {
             player.getPassengers().forEach(Entity::stopRiding);
-            //?} else {
-            /*player.getPassengerList().forEach(Entity::stopRiding);
-            *///?}
             player.fallDistance = 0f;
             //? if >=26 {
             player.teleportTo(
@@ -298,14 +227,14 @@ public class FabricUser extends OnlineUser {
                     true
             );
             //?} elif >=1.21.4 {
-            /*player.teleport(
+            /*player.teleportTo(
                     world, location.getX(), location.getY(), location.getZ(),
                     Set.of(),
                     location.getYaw(), location.getPitch(),
                     true
             );
             *///?} else {
-            /*player.teleport(
+            /*player.teleportTo(
                     world, location.getX(), location.getY(), location.getZ(),
                     location.getYaw(), location.getPitch()
             );
@@ -320,12 +249,10 @@ public class FabricUser extends OnlineUser {
 
     @Override
     public boolean isMoving() {
-        //? if >=26 {
+        //? if >=1.21.3 {
         return player.isInWater() || player.isFallFlying() || player.isSprinting() || player.isShiftKeyDown();
-        //?} elif >=1.21.3 {
-        /*return player.isTouchingWater() || player.isGliding() || player.isSprinting() || player.isSneaking();
-        *///?} else {
-        /*return player.isTouchingWater() || player.isSprinting() || player.isSneaking();
+        //?} else {
+        /*return player.isInWater() || player.isSprinting() || player.isShiftKeyDown();
         *///?}
     }
 
@@ -339,7 +266,7 @@ public class FabricUser extends OnlineUser {
         //? if >=26 {
         return markedAsInvulnerable || player.entityTags().contains(invulnerableTag);
         //?} else {
-        /*return markedAsInvulnerable || player.getCommandTags().contains(invulnerableTag);
+        /*return markedAsInvulnerable || player.getTags().contains(invulnerableTag);
         *///?}
     }
 
@@ -357,7 +284,7 @@ public class FabricUser extends OnlineUser {
         //? if >=26 {
         player.addTag(invulnerableTag);
         //?} else {
-        /*player.getCommandTags().add(invulnerableTag);
+        /*player.getTags().add(invulnerableTag);
         *///?}
         markedAsInvulnerable = true;
         plugin.runSyncDelayed(this::removeInvulnerabilityIfPermitted, this, invulnerableTicks);
@@ -372,21 +299,13 @@ public class FabricUser extends OnlineUser {
             player.setInvulnerable(false);
             //?}
         }
-        //? if >=26 {
         player.removeTag(invulnerableTag);
-        //?} else {
-        /*player.removeCommandTag(invulnerableTag);
-        *///?}
         markedAsInvulnerable = false;
     }
 
     @NotNull
     public
-            //? if >=26 {
             ServerPlayer
-            //?} else {
-            /*ServerPlayerEntity
-            *///?}
             getPlayer() {
         return player;
     }

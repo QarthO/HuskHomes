@@ -36,9 +36,8 @@ loom {
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
-    if (!isUnobfuscated) {
-        mappings("net.fabricmc:yarn:${property("fabric_yarn_mappings")}:v2")
-    }
+    // Mojang mappings below 26; unobfuscated versions need none
+    loomx.applyMojangMappings()
     modImplementation("net.fabricmc:fabric-loader:${property("fabric_loader_version")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
 

@@ -20,7 +20,7 @@
 package net.william278.huskhomes.util;
 
 import net.minecraft.server.MinecraftServer;
-//? if >=26.1.2 {
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FireBlock;
 import net.minecraft.world.level.block.LiquidBlock;
@@ -30,18 +30,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.resources.Identifier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-//import net.minecraft.world.level.block.BlockView;
-//?} else {
-/*import net.minecraft.block.Block;
-import net.minecraft.block.FireBlock;
-import net.minecraft.block.FluidBlock;
-import net.minecraft.registry.Registries;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockView;
-*///?}
 import net.william278.huskhomes.FabricHuskHomes;
 import net.william278.huskhomes.position.Location;
 import net.william278.huskhomes.position.World;
@@ -66,22 +54,17 @@ public interface FabricSavePositionProvider extends SavePositionProvider {
                 .findFirst();
         //?} else {
         /*final Identifier worldId = Identifier.tryParse(location.getWorld().getName());
-        final Optional<ServerWorld> locationWorld = server.getWorldRegistryKeys().stream()
-               .filter(key -> key.getValue().equals(worldId)).findFirst()
-               .map(server::getWorld);
+        final Optional<ServerLevel> locationWorld = server.levelKeys().stream()
+               .filter(key -> key.identifier().equals(worldId)).findFirst()
+               .map(server::getLevel);
         *///?}
         if (locationWorld.isEmpty()) {
             return CompletableFuture.completedFuture(Optional.empty());
         }
 
         // Ensure the location is within the world border
-        //? if >=26.1.2 {
         final ServerLevel world = locationWorld.get();
         if (!world.getWorldBorder().isWithinBounds(location.getX(), location.getZ())) {
-        //?} else {
-        /*final ServerWorld world = locationWorld.get();
-        if (!world.getWorldBorder().contains(location.getX(), location.getZ())) {
-        *///?}
             return CompletableFuture.completedFuture(Optional.empty());
         }
 
@@ -96,18 +79,10 @@ public interface FabricSavePositionProvider extends SavePositionProvider {
      */
     private Optional<Location> findSafeLocationNear(
             @NotNull Location location,
-            //? if >=26.1.2 {
             @NotNull ServerLevel world,
-            //?} else {
-            /*@NotNull ServerWorld world,
-            *///?}
             @NotNull String worldName
     ) {
-        //? if >=26.1.2 {
         final BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos(location.getX(), location.getY(), location.getZ());
-        //?} else {
-        /*final BlockPos.Mutable blockPos = new BlockPos.Mutable(location.getX(), location.getY(), location.getZ());
-        *///?}
         for (int x = -SEARCH_RADIUS; x <= SEARCH_RADIUS; x++) {
             for (int z = -SEARCH_RADIUS; z <= SEARCH_RADIUS; z++) {
                 blockPos.set(location.getX() + x, location.getY(), location.getZ() + z);
@@ -157,16 +132,15 @@ public interface FabricSavePositionProvider extends SavePositionProvider {
              //? if >=26.1.2 {
              @NotNull ServerLevel blockView,
              //?} else {
-             /*@NotNull BlockView blockView,
+             /*@NotNull BlockGetter blockView,
              *///?}
              int x, int y, int z) {
-         //? if >=26.1.2 {
          final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos(x, y, z);
+         //? if >=1.21.2 {
          final int minY = blockView.getMinY();
-        //?} else {
-        /*final BlockPos.Mutable cursor = new BlockPos.Mutable(x, y, z);
-        final int minY = blockView.getBottomY();
-        *///?}
+         //?} else {
+         /*final int minY = blockView.getMinBuildHeight();
+         *///?}
         while (blockView.getBlockState(cursor).isAir() && cursor.getY() > minY) {
             cursor.move(Direction.DOWN);
         }
@@ -174,41 +148,20 @@ public interface FabricSavePositionProvider extends SavePositionProvider {
     }
 
     private Identifier getBlockId(
-            //? if >=26.1.2 {
             @NotNull ServerLevel world,
-            //?} else {
-            /*@NotNull ServerWorld world,
-            *///?}
             @NotNull BlockPos pos, int y) {
-        //? if >=26.1.2 {
         final Block block = world.getBlockState(pos.atY(y)).getBlock();
         return BuiltInRegistries.BLOCK.getKey(block);
-        //?} else {
-        /*final Block block = world.getBlockState(pos.withY(y)).getBlock();
-        return Registries.BLOCK.getId(block);
-        *///?}
     }
 
     private boolean isSafeLocation(
-            //? if >=26.1.2 {
             @NotNull ServerLevel world,
-            //?} else {
-            /*@NotNull ServerWorld world,
-            *///?}
             @NotNull BlockPos blockPos, int y) {
-        //? if >=26.1.2 {
         final Block block = world.getBlockState(blockPos.atY(y - 1)).getBlock();
-        //?} else {
-        /*final Block block = world.getBlockState(blockPos.withY(y - 1)).getBlock();
-        *///?}
         final Identifier id = getBlockId(world, blockPos, y - 1);
         final Identifier bodyBlockId = getBlockId(world, blockPos, y);
         final Identifier headBlockId = getBlockId(world, blockPos, y + 1);
-        //? if >=26.1.2 {
         final boolean isFluidBlock = block instanceof LiquidBlock;
-        //?} else {
-        /*final boolean isFluidBlock = block instanceof FluidBlock;
-        *///?}
 
         return !isFluidBlock && !(block instanceof FireBlock)
                 && isBlockSafeForStanding(id.toString()) && isBlockSafeForOccupation(bodyBlockId.toString())
@@ -216,11 +169,7 @@ public interface FabricSavePositionProvider extends SavePositionProvider {
     }
 
     private Optional<Integer> getY(@NotNull Location location, @NotNull BlockPos blockPos,
-                                   //? if >=26.1.2 {
                                    @NotNull ServerLevel world,
-                                   //?} else {
-                                   /*@NotNull ServerWorld world,
-                                   *///?}
                                    int minY, int maxY) {
         final int highestY = getHighestYAt(world, blockPos.getX(), blockPos.getY(), blockPos.getZ());
         if (location.getWorld().getEnvironment().equals(World.Environment.NETHER)) {
@@ -238,16 +187,12 @@ public interface FabricSavePositionProvider extends SavePositionProvider {
     }
 
     private int getMinHeight(
-            //? if >=26.1.2 {
             ServerLevel world,
-            //?} else {
-            /*ServerWorld world,
-            *///?}
             String worldName) {
         //? if >=26.1.2 {
         int minHeight = world.getMinY();
         //?} else {
-        /*int minHeight = world.getDimension().minY();
+        /*int minHeight = world.dimensionType().minY();
         *///?}
         for (String pair : getPlugin().getSettings().getRtp().getMinHeight()) {
             String settingsWorldName = pair.split(":")[0];
@@ -260,16 +205,12 @@ public interface FabricSavePositionProvider extends SavePositionProvider {
     }
 
     private int getMaxHeight(
-            //? if >=26.1.2 {
             ServerLevel world,
-            //?} else {
-            /*ServerWorld world,
-            *///?}
             String worldName) {
         //? if >=26.1.2 {
         int maxHeight = world.getHeight() + world.getMinY();
         //?} else {
-        /*int maxHeight = world.getDimension().height() + world.getDimension().minY();
+        /*int maxHeight = world.dimensionType().height() + world.dimensionType().minY();
         *///?}
         for (String pair : getPlugin().getSettings().getRtp().getMaxHeight()) {
             String settingsWorldName = pair.split(":")[0];
