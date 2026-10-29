@@ -19,11 +19,11 @@
 
 package net.william278.huskhomes.event;
 
-//#if MC>=260102
+//? if >=26.1.2 {
 import net.minecraft.world.InteractionResult;
-//#else
-//$$ import net.minecraft.util.ActionResult;
-//#endif
+//?} else {
+/*import net.minecraft.util.ActionResult;
+*///?}
 import net.william278.huskhomes.FabricHuskHomes;
 import net.william278.huskhomes.position.Home;
 import net.william278.huskhomes.position.Position;
@@ -56,11 +56,11 @@ public interface FabricEventDispatcher extends EventDispatcher {
                     (net.fabricmc.fabric.api.event.Event<?>) field.invoke(event);
 
             final FabricEventCallback<T> invoker = (FabricEventCallback<T>) fabricEvent.invoker();
-            //#if MC>=260102
+            //? if >=26.1.2 {
             return invoker.invoke(event) == InteractionResult.FAIL;
-            //#else
-            //$$ return invoker.invoke(event) == ActionResult.FAIL;
-            //#endif
+            //?} else {
+            /*return invoker.invoke(event) == ActionResult.FAIL;
+            *///?}
         } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
             getPlugin().log(Level.WARNING, "Failed to fire event (" + event.getClass().getName() + ")", e);
             return false;

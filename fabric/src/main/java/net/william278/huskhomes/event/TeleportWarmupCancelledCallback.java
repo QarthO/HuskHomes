@@ -21,11 +21,11 @@ package net.william278.huskhomes.event;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-//#if MC>=260102
+//? if >=26.1.2 {
 import net.minecraft.world.InteractionResult;
-//#else
-//$$ import net.minecraft.util.ActionResult;
-//#endif
+//?} else {
+/*import net.minecraft.util.ActionResult;
+*///?}
 import net.william278.huskhomes.teleport.TimedTeleport;
 import net.william278.huskhomes.util.QuadFunction;
 import org.jetbrains.annotations.NotNull;
@@ -41,11 +41,11 @@ public interface TeleportWarmupCancelledCallback extends FabricEventCallback<ITe
                     listener.invoke(event);
                 }
 
-                //#if MC>=260102
+                //? if >=26.1.2 {
                 return InteractionResult.PASS;
-                //#else
-                //$$ return ActionResult.PASS;
-                //#endif
+                //?} else {
+                /*return ActionResult.PASS;
+                *///?}
             });
 
     @NotNull

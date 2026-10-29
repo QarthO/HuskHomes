@@ -53,11 +53,11 @@ public interface FabricTask extends Task {
             if (!cancelled) {
                 ASYNC_EXEC.schedule(
                         () -> ((FabricHuskHomes) getPlugin()).getMinecraftServer()
-                                //#if MC>=260000
+                                //? if >=26 {
                                 .executeIfPossible(runnable),
-                                //#else
-                                //$$.executeSync(runnable),
-                                //#endif
+                                //?} else {
+                                /*.executeSync(runnable),
+                                *///?}
                         delayTicks * 50,
                         TimeUnit.MILLISECONDS
                 );
